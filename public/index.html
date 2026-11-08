@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Order Pemasangan Internet</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; background: #f4f7f6; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2, h3 { color: #333; }
+        form { display: grid; gap: 10px; margin-bottom: 30px; background: #f9f9f9; padding: 15px; border-radius: 6px; }
+        input, select, textarea, button { padding: 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; font-size: 14px; }
+        th { background-color: #007bff; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Dashboard Order Pemasangan Internet</h2>
+        <p>Sistem Manajemen Order & Integrasi API ISP</p>
+
+        <!-- Form Tambah Order -->
+        <h3>Form Tambah Order Baru (Simulasi ISP / Pelanggan)</h3>
+        <form id="orderForm">
+            <input type="text" id="customer_name" placeholder="Nama Pelanggan" required>
+            <input type="text" id="phone" placeholder="No. Telepon / WhatsApp" required>
+            <textarea id="address" placeholder="Alamat Lengkap Pemasangan" rows="2" required></textarea>
+            <select id="package_name" required>
+                <option value="">-- Pilih Paket Internet --</option>
+                <option value="Paket Fiber 20 Mbps">Paket Fiber 20 Mbps</option>
+                <option value="Paket Fiber 50 Mbps">Paket Fiber 50 Mbps</option>
+                <option value="Paket Fiber 100 Mbps">Paket Fiber 100 Mbps</option>
+            </select>
+            <button type="submit">Kirim Order</button>
+        </form>
+
+        <!-- Tabel Daftar Order -->
+        <h3>Daftar Pesanan Masuk</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nama</th>
+                    <th>Telepon</th>
+                    <th>Alamat</th>
+                    <th>Paket</th>
+                    <th>Status</th>
+                    <th>Waktu</th>
+                </tr>
+            </thead>
+            <tbody id="order-table-body">
+                <tr><td colspan="7" style="text-align: center;">Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fungsi mengambil data untuk ditampilkan di tabel
+        async function fetchOrders() {
+            try {
+                const response = await fetch('/api/orders');
+                const result = await response.json();
+                
+                const tbody = document.getElementById('order-table-body');
+                tbody.innerHTML = '';
+
+                if (!result.data || result.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Belum ada order masuk.</td></tr>';
+                    return;
+                }
+
+                result.data.forEach(order => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${order.id}</td>
+                        <td>${order.customer_name}</td>
+                        <td>${order.phone}</td>
+                        <td>${order.address}</td>
+                        <td>${order.package_name}</td>
+                        <td><b>${order.status}</b></td>
+                        <td>${new Date(order.created_at).toLocaleString('id-ID')}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Gagal memuat data:', error);
+            }
+        }
+
+        // Fungsi mengirim data baru saat form disubmit
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                customer_name: document.getElementById('customer_name').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                package_name: document.getElementById('package_name').value
+            };
+
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    alert('Order berhasil dikirim!');
+                    document.getElementById('orderForm').reset();
+                    fetchOrders(); // Refresh tabel otomatis
+                } else {
+                    alert('Gagal: ' + result.message);
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Terjadi kesalahan koneksi ke server.');
+            }
+        });
+
+        // Muat data saat halaman dibuka
+        fetchOrders();
+    </script>
+</body>
+</html>
