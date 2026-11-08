@@ -99,24 +99,29 @@
     <script>
         if (sessionStorage.getItem('isLoggedIn') === 'true') { showDashboard(); }
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const usernameInput = document.getElementById('username').value;
-            const passwordInput = document.getElementById('password').value;
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: usernameInput, password: passwordInput })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    sessionStorage.setItem('isLoggedIn', 'true');
-                    showDashboard();
-                } else {
-                    alert(result.message || 'Username atau password salah!');
-                }
-            } catch (err) { alert('Gagal terhubung ke server.'); }
+    e.preventDefault();
+    const usernameInput = document.getElementById('username').value;
+    const passwordInput = document.getElementById('password').value;
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: usernameInput, password: passwordInput })
         });
+
+        const result = await response.json();
+        if (result.success) {
+            sessionStorage.setItem('isLoggedIn', 'true');
+            showDashboard();
+        } else {
+            alert(result.message || 'Username atau password salah!');
+        }
+    } catch (err) {
+        console.error('Login error:', err);
+        alert('Gagal terhubung ke server.');
+    }
+});
         function showDashboard() {
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('dashboard-section').style.display = 'block';
