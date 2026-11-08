@@ -26,6 +26,21 @@ db.connect((err) => {
     console.log('Terhubung ke Database MySQL!');
 });
 
+// --- API ENDPOINT LOGIN ---
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    // Kredensial Login Default
+    const defaultUsername = process.env.ADMIN_USER || 'admin';
+    const defaultPassword = process.env.ADMIN_PASS || 'adminpassword';
+
+    if (username === defaultUsername && password === defaultPassword) {
+        return res.json({ success: true, message: 'Login berhasil!' });
+    } else {
+        return res.status(401).json({ success: false, message: 'Username atau password salah!' });
+    }
+});
+
 // --- MIDDLEWARE API KEY ---
 const verifyApiKey = (req, res, next) => {
     const apiKey = req.headers['x-api-key'];
